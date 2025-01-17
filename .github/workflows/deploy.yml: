@@ -1,0 +1,44 @@
+name: Build or Deploy Streamlit
+
+on:
+  # Trigger on push or pull request. Adjust as you like.
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      # Step 1: Create .streamlit folder and secrets.toml
+      - name: Create secrets.toml
+        run: |
+          mkdir -p .streamlit
+          echo "[OKX]" > .streamlit/secrets.toml
+          echo "API_KEY = \"$OKX_API_KEY\"" >> .streamlit/secrets.toml
+          echo "SECRET_KEY = \"$OKX_SECRET_KEY\"" >> .streamlit/secrets.toml
+          echo "PASSPHRASE = \"$OKX_PASSPHRASE\"" >> .streamlit/secrets.toml
+        env:
+          OKX_API_KEY: ${{ secrets.OKX_API_KEY }}
+          OKX_SECRET_KEY: ${{ secrets.OKX_SECRET_KEY }}
+          OKX_PASSPHRASE: ${{ secrets.OKX_PASSPHRASE }}
+
+      # Step 2: Install dependencies
+      - name: Install dependencies
+        run: pip install streamlit
+
+      # Step 3 (Optional): Run or deploy your Streamlit app
+      - name: Run Streamlit
+        run: |
+          streamlit run streamlit_app.py --server.headless true
+          # Or if you're deploying somewhere, you'd do your deployment steps here
